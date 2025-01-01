@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
+import day from '../public/amcharts_weather_icons_1.0.0/static/day.svg';
 
 
 interface Coordinate {
@@ -88,16 +90,49 @@ interface ViewProps {
   forecast: Forecast;
 }
 
+enum WeatherView {
+  SIMPLE_VIEW,
+  DAILY_VIEW
+}
+
 function View({coords, forecast}: ViewProps) {
+
+  const [weatherView, setWeatherView] = React.useState(WeatherView.SIMPLE_VIEW)
+
+  function renderView() {
+
+    let view = null;
+
+    switch(weatherView) {
+      case WeatherView.SIMPLE_VIEW:
+        view = (
+          <div className="flex-auto content-center" onClick={()=>{setWeatherView(WeatherView.DAILY_VIEW)}}>
+              <Image src={day} alt="day" className="animate-bounce" />
+          </div>
+        )
+        break;
+      case WeatherView.DAILY_VIEW:
+        view = (      
+          <div onClick={()=>{setWeatherView(WeatherView.SIMPLE_VIEW)}}>
+            <div>Forecast</div>
+            {forecast.timelines?.daily.map((day, index) => <div key={index}>{new Date(String(day.time)).getDate()} average {day.values.temperatureApparentAvg} C</div>)} 
+          </div>
+        )
+        break;
+      default:
+        view = <div>Unable to weather view.</div>
+      return view;
+    }
+
+    return view;
+  }
+
   return (
     <div> 
       <div>
         Location: {coords.latitude}, {coords.longitude} 
       </div>
-      <div>
-        <div>Forecast</div>
-        {forecast.timelines?.daily.map((day, index) => <div key={index}>{new Date(String(day.time)).getDate()} average {day.values.temperatureApparentAvg} C</div>)} 
-      </div>
+      {renderView()}
     </div>
   )
 }
